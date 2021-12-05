@@ -1,5 +1,6 @@
 package com.company;
 
+import java.math.BigInteger;
 import java.util.Locale;
 import java.util.Random;
 import java.util.Scanner;
@@ -36,12 +37,12 @@ public class Main {
         for(int i=0; i<text.length(); i++){
             if(i%2!=0) digest.append((text.charAt(i)+"").toUpperCase(Locale.ROOT));
         }
-        int p=5, q=7;
+        int p=19, q=23;
         int n = p*q;
         int form = (p-1)*(q-1); //ЗАКРЫТЫЙ КЛЮЧ
 
-        int hash =random.nextInt(200);  // (h(i-1) + m(i)**2)%2
-
+        int h0 =random.nextInt(200)+1;  // (h(i-1) + m(i)**2)%2
+        int hash = h0;
         for(int i=0; i<digest.length(); i++){
             hash = ((int) Math.pow((hash + charRU.indexOf(digest.charAt(i))),2))%n;
         }
@@ -59,18 +60,35 @@ public class Main {
         }
         System.out.println("Закрытый ключ: "+d + ", "+n);
         System.out.println("Открытый ключ: "+e + ", "+n);
-        int s = (int) Math.pow(hash,d);
-        s%=n;
-        System.out.println("Электронный ключ: "+s);
+        BigInteger s = new BigInteger(String.valueOf(hash));
+        s = s.pow(d);
+        s = s.remainder(BigInteger.valueOf(n));
+        System.out.println("Электронная подпись: "+s);
         System.out.println("Проверка ЭП..");
-        int H = (int) Math.pow(s,e);
-        H%=n;
+
+        System.out.print("Введите сообщение: ");
+        text = in.nextLine(); //23 29
+        digest= new StringBuilder();
+        for(int i=0; i<text.length(); i++){
+            if(i%2!=0) digest.append((text.charAt(i)+"").toUpperCase(Locale.ROOT));
+        }
+        int hashNew = h0;
+        for(int i=0; i<digest.length(); i++){
+            hashNew = ((int) Math.pow((hashNew + charRU.indexOf(digest.charAt(i))),2))%n;
+        }
+        System.out.println("Хеш образ сообщения \""+digest+"\" равен: "+hashNew);
+        BigInteger s1 = new BigInteger(String.valueOf(hashNew));
+        s1 = s1.pow(d);
+        s1 = s1.remainder(BigInteger.valueOf(n));
+
+        BigInteger H = s1.pow(e);
+        H = H.remainder(BigInteger.valueOf(n));
         System.out.println("H: "+H);
-        if (H==s){
-            System.out.println("Электронный ключ совпадает со значением H, ЭП подленный");
+        if (H.intValue() ==hash){
+            System.out.println("Электронная подпись совпадает со значением H, ЭП подленная");
         }
         else {
-            System.out.println("Электронный ключ yt совпадает со значением H, ЭП подделан");
+            System.out.println("Электронная подпись подделана");
         }
 
     }
